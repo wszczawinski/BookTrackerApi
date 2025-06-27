@@ -4,21 +4,23 @@ A lightweight, self-hosted reading tracker built with FastAPI, PostgreSQL, and G
 
 ## 🚀 Features
 
-- 🔐 GitHub OAuth authentication
 - 📚 Add books with title, author, ISBN, or OLID
 - 📈 Track reading progress (percent or pages)
 - ✅ Mark books as want-to-read, in-progress, or completed
 - 🔗 Automatically link to OpenLibrary for book covers and detail pages
 - 🐳 Dockerized for self-hosted deployment
 - 📄 OpenAPI docs auto-generated via FastAPI
+- 🔐 GitHub OAuth authentication
 
 ## 📦 Tech Stack
 
 - **Backend**: FastAPI
+- **Database**: PostgreSQL (via SQLModel)
 - **Auth**: GitHub OAuth (via Authlib)
-- **Database**: PostgreSQL (via SQLAlchemy)
 - **Migrations**: Alembic
-- **External API**: OpenLibrary (for metadata)
+- **API Server**: Uvicorn
+- **Data Validation**: Pydantic
+- **Database Driver**: psycopg2
 - **Deployment**: Docker + Docker Compose
 
 ## 📐 Domain Model
@@ -94,10 +96,11 @@ uvicorn app.main:app --reload
 ## ✅ Project Roadmap
 
 - [x] Setup project dependencies and virtual environment
-- [ ] Configure a database with Docker Compose (PostgreSQL)
-- [ ] Implement database connection and ORM models
-- [ ] Set up Alembic and create initial migration
+- [x] Configure a database with Docker Compose (PostgreSQL)
+- [x] Implement database connection and ORM models
 - [ ] Define domain model (`User`, `Book`, `ReadingEntry`)
-- [ ] Integrate GitHub OAuth authentication
-- [ ] Create a Dockerfile for containerized deployment
 - [ ] Build API endpoints for book and reading progress management
+- [ ] Integrate GitHub OAuth authentication
+- [ ] Set up Alembic and create initial migration
+- [ ] Add API rate limiting and security headers
+- [ ] Create a Dockerfile for containerized deployment
