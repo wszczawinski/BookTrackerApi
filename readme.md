@@ -7,11 +7,10 @@ A lightweight, self-hosted reading tracker built with FastAPI, PostgreSQL, and G
 - 🔐 GitHub OAuth authentication
 - 📚 Add books with title, author, ISBN, or OLID
 - 📈 Track reading progress (percent or pages)
-- ✅ Mark books as started, in-progress, or finished
+- ✅ Mark books as want-to-read, in-progress, or completed
 - 🔗 Automatically link to OpenLibrary for book covers and detail pages
 - 🐳 Dockerized for self-hosted deployment
 - 📄 OpenAPI docs auto-generated via FastAPI
-
 
 ## 📦 Tech Stack
 
@@ -21,7 +20,6 @@ A lightweight, self-hosted reading tracker built with FastAPI, PostgreSQL, and G
 - **Migrations**: Alembic
 - **External API**: OpenLibrary (for metadata)
 - **Deployment**: Docker + Docker Compose
-
 
 ## 📐 Domain Model
 
@@ -62,13 +60,11 @@ A lightweight, self-hosted reading tracker built with FastAPI, PostgreSQL, and G
                 └────────────────────┘
 ```
 
-
 ## 🛠 Prerequisites
 
 - Python 3.13+
-- Docker & Docker Compose (or Podman & Podman Compose) installed 
+- Docker & Docker Compose (or Podman & Podman Compose) installed
 - Git installed
-
 
 ## 🔑 Create .env
 
@@ -94,7 +90,6 @@ docker-compose up
 # Run the app
 uvicorn app.main:app --reload
 ```
-
 
 ## ✅ Project Roadmap
 
