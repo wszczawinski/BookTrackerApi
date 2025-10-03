@@ -98,7 +98,7 @@ uvicorn app.main:app --reload
 - [x] Setup project dependencies and virtual environment
 - [x] Configure a database with Docker Compose (PostgreSQL)
 - [x] Implement database connection and ORM models
-- [ ] Define domain model (`User`, `Book`, `ReadingEntry`)
+- [x] Define domain model (`User`, `Book`, `ReadingEntry`)
 - [ ] Build API endpoints for book and reading progress management
 - [ ] Integrate GitHub OAuth authentication
 - [ ] Set up Alembic and create initial migration
