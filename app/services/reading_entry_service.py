@@ -58,22 +58,16 @@ class ReadingEntryService:
         self.session.refresh(entry)
         return entry
 
-    def start_reading(self, user_id: UUID, book_id: UUID) -> ReadingEntry:
-        existing_entry = self.session.exec(
-            select(ReadingEntry).where(
-                ReadingEntry.user_id == user_id,
-                ReadingEntry.book_id == book_id,
-            )
-        ).first()
+    def start_reading(self, entry_id: UUID) -> Optional[ReadingEntry]:
+        entry = self.session.get(ReadingEntry, entry_id)
+        if not entry:
+            return None
 
-        if not existing_entry:
-            raise ValueError("Book not found in user library. Add to wishlist first.")
-
-        existing_entry.start_reading()
-        self.session.add(existing_entry)
+        entry.start_reading()
+        self.session.add(entry)
         self.session.commit()
-        self.session.refresh(existing_entry)
-        return existing_entry
+        self.session.refresh(entry)
+        return entry
 
     def update_reading_progress(
         self, entry_id: UUID, progress: Decimal

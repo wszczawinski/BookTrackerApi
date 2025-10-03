@@ -26,16 +26,18 @@ class BookBase(SQLModel):
 
 
 class Book(BookBase, BaseModel, table=True):
-    reading_entries: list['ReadingEntry'] = Relationship(back_populates='book')
+    reading_entries: list["ReadingEntry"] = Relationship(back_populates="book")
 
 
 class BookCreate(BookBase):
     pass
 
 
-class BookPublic(SQLModel):
-    """Public book data for API responses"""
+class BookUpdate(BookBase):
+    pass
 
+
+class BookPublic(SQLModel):
     id: UUID
     title: str
     author: str

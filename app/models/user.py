@@ -1,6 +1,7 @@
 from sqlmodel import Field, SQLModel, Relationship
 from pydantic import EmailStr, StringConstraints
 from typing import Optional, Annotated, TYPE_CHECKING
+from uuid import UUID
 
 from .base import BaseModel
 
@@ -24,11 +25,21 @@ class UserBase(SQLModel):
 
 
 class User(UserBase, BaseModel, table=True):
-    reading_entries: list['ReadingEntry'] = Relationship(back_populates='user')
+    reading_entries: list["ReadingEntry"] = Relationship(back_populates="user")
 
 
-class UserCreate(UserBase):
-    pass
+class UserCreate(SQLModel):
+    github_id: int = Field(unique=True, index=True)
+    username: Annotated[str, StringConstraints(min_length=1, max_length=39)] = Field(
+        index=True
+    )
+    email: EmailStr = Field(index=True)
+    avatar_url: Optional[Annotated[str, StringConstraints(max_length=500)]] = Field(
+        default=None
+    )
+    display_name: Optional[Annotated[str, StringConstraints(max_length=100)]] = Field(
+        default=None
+    )
 
 
 class UserUpdate(SQLModel):
@@ -42,6 +53,7 @@ class UserUpdate(SQLModel):
 
 
 class UserPublic(SQLModel):
+    id: UUID
     username: str
     display_name: Optional[str]
     avatar_url: Optional[str]
