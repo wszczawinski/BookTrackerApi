@@ -3,13 +3,9 @@ from typing import List, Optional
 from decimal import Decimal
 from sqlmodel import Session, select
 
-from app.models.reading_entry import (
-    ReadingEntry,
-    ReadingEntryCreate,
-    ReadingStatus,
-)
-from app.models.user import User
-from app.models.book import Book
+from app.models.domain.reading_entry import ReadingEntry, ReadingStatus
+from app.models.domain.user import User
+from app.models.domain.book import Book
 
 
 class ReadingEntryService:
@@ -30,7 +26,7 @@ class ReadingEntryService:
 
         return self.session.exec(statement).all()
 
-    def add_book_to_wishlist(self, user_id: UUID, book_id: UUID) -> ReadingEntry:
+    def add_book_to_library(self, user_id: UUID, book_id: UUID) -> ReadingEntry:
         user = self.session.get(User, user_id)
         if not user:
             raise ValueError("User not found")

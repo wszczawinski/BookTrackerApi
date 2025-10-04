@@ -3,9 +3,10 @@ from fastapi_utils.cbv import cbv
 from typing import List
 from uuid import UUID
 
-from app.models.user import User, UserCreate, UserPublic
-from app.services.user_service import UserService
+from app.models.responses.user_responses import UserPublic
+from app.models.requests.user_requests import UserCreate
 from app.services.dependencies import get_user_service
+from app.services.user_service import UserService
 
 router = APIRouter()
 

@@ -2,7 +2,8 @@ from typing import List, Optional
 from uuid import UUID
 from sqlmodel import Session, select
 
-from app.models.book import Book, BookCreate, BookUpdate
+from app.models.domain.book import Book
+from app.models.requests.book_requests import BookCreate, BookUpdate
 
 
 class BookService:

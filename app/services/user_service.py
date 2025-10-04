@@ -2,7 +2,8 @@ from uuid import UUID
 from typing import List, Optional
 from sqlmodel import Session, select
 
-from app.models.user import User, UserCreate, UserUpdate
+from app.models.domain.user import User
+from app.models.requests.user_requests import UserCreate, UserUpdate
 
 
 class UserService:

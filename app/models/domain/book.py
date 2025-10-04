@@ -1,10 +1,8 @@
 from sqlmodel import Field, SQLModel, Relationship
 from pydantic import field_validator, StringConstraints
 from typing import Optional, Annotated, TYPE_CHECKING
-from uuid import UUID
-from datetime import datetime
 
-from .base import BaseModel
+from ..base import BaseModel
 
 if TYPE_CHECKING:
     from .reading_entry import ReadingEntry
@@ -27,23 +25,3 @@ class BookBase(SQLModel):
 
 class Book(BookBase, BaseModel, table=True):
     reading_entries: list["ReadingEntry"] = Relationship(back_populates="book")
-
-
-class BookCreate(BookBase):
-    pass
-
-
-class BookUpdate(BookBase):
-    pass
-
-
-class BookPublic(SQLModel):
-    id: UUID
-    title: str
-    author: str
-    isbn: Optional[str]
-    olid: Optional[str]
-    cover_url: Optional[str]
-    openlibrary_url: Optional[str]
-    created_at: datetime
-    updated_at: datetime

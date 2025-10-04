@@ -5,25 +5,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
-from app.models.reading_entry import ReadingEntry, ReadingEntryPublic, ReadingStatus
+from app.models.domain.reading_entry import ReadingStatus
+from app.models.responses.reading_entry_responses import ReadingEntryPublic
+from app.models.requests.reading_entry_requests import (
+    AddBookRequest,
+    UpdateProgressRequest,
+    UpdateReviewRequest,
+)
 from app.services.reading_entry_service import ReadingEntryService
 from app.services.dependencies import get_reading_entry_service
 
 router = APIRouter()
-
-
-class AddBookRequest(BaseModel):
-    user_id: UUID
-    book_id: UUID
-
-
-class UpdateProgressRequest(BaseModel):
-    progress: Decimal
-
-
-class UpdateReviewRequest(BaseModel):
-    rating: int
-    review: Optional[str] = None
 
 
 @cbv(router)
@@ -38,7 +30,6 @@ class ReadingEntryController:
             None, description="Filter by reading status"
         ),
     ):
-        """Get reading entries for a user, optionally filtered by status."""
         entries = self.service.get_user_entries(user_id, status)
         return [ReadingEntryPublic.model_validate(entry) for entry in entries]
 
@@ -49,10 +40,10 @@ class ReadingEntryController:
             raise HTTPException(status_code=404, detail="Reading entry not found")
         return ReadingEntryPublic.model_validate(entry)
 
-    @router.post("/library", response_model=ReadingEntryPublic, status_code=201)
-    def add_book_to_wishlist(self, request: AddBookRequest):
+    @router.post("/", response_model=ReadingEntryPublic, status_code=201)
+    def add_book_to_library(self, request: AddBookRequest):
         try:
-            entry = self.service.add_book_to_wishlist(request.user_id, request.book_id)
+            entry = self.service.add_book_to_library(request.user_id, request.book_id)
             return ReadingEntryPublic.model_validate(entry)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))

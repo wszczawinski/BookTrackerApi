@@ -6,7 +6,7 @@ from typing import Optional, Annotated, TYPE_CHECKING
 from uuid import UUID
 from enum import Enum
 
-from .base import BaseModel
+from ..base import BaseModel
 
 if TYPE_CHECKING:
     from .user import User
@@ -48,46 +48,6 @@ class ReadingEntryBase(SQLModel):
 
         if self.status == ReadingStatus.IN_PROGRESS and not self.start_date:
             raise ValueError("start_date is required when status is IN_PROGRESS")
-
-        return self
-
-
-class ReadingEntryCreate(ReadingEntryBase):
-    pass
-
-
-class ReadingEntryPublic(SQLModel):
-    id: UUID
-    book_id: UUID
-    start_date: Optional[datetime]
-    end_date: Optional[datetime]
-    progress: Decimal
-    rating: Optional[int]
-    review: Optional[str]
-    status: ReadingStatus
-    created_at: datetime
-    updated_at: datetime
-
-
-class ReadingEntryUpdate(SQLModel):
-    start_date: Optional[datetime] = Field(default=None)
-    end_date: Optional[datetime] = Field(default=None)
-    progress: Optional[Annotated[Decimal, Field(ge=0, le=100)]] = Field(default=None)
-    rating: Optional[Annotated[int, Field(ge=1, le=5)]] = Field(default=None)
-    review: Optional[Annotated[str, StringConstraints(max_length=2000)]] = Field(
-        default=None
-    )
-    status: Optional[ReadingStatus] = Field(default=None)
-
-    @model_validator(mode="after")
-    def validate_partial_update(self) -> "ReadingEntryUpdate":
-        if self.status == ReadingStatus.COMPLETED:
-            if self.progress is not None and self.progress != 100:
-                raise ValueError("progress must be 100 when status is COMPLETED")
-
-        if self.end_date and self.start_date:
-            if self.end_date < self.start_date:
-                raise ValueError("end_date cannot be earlier than start_date")
 
         return self
 

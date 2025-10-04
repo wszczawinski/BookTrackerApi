@@ -3,7 +3,8 @@ from fastapi_utils.cbv import cbv
 from typing import List, Optional
 from uuid import UUID
 
-from app.models.book import Book, BookCreate, BookUpdate, BookPublic
+from app.models.responses.book_responses import BookPublic
+from app.models.requests.book_requests import BookCreate, BookUpdate
 from app.services.book_service import BookService
 from app.services.dependencies import get_book_service
 
