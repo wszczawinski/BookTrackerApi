@@ -43,4 +43,12 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Book Tracker API"
 
 
+    CORS_ORIGINS: list[str]
+    CORS_ALLOW_CREDENTIALS: bool
+    CORS_ALLOW_METHODS: list[str]
+    CORS_ALLOW_HEADERS: list[str]
+
+    TRUSTED_HOSTS: list[str]
+
+
 settings = Settings()  # type: ignore
