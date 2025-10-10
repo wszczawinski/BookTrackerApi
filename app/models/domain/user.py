@@ -9,11 +9,10 @@ if TYPE_CHECKING:
 
 
 class UserBase(SQLModel):
-    github_id: int = Field(unique=True, index=True)
     username: Annotated[str, StringConstraints(min_length=1, max_length=39)] = Field(
         index=True
     )
-    email: EmailStr = Field(index=True)
+    email: EmailStr = Field(unique=True, index=True)
     avatar_url: Optional[Annotated[str, StringConstraints(max_length=500)]] = Field(
         default=None
     )

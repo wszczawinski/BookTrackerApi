@@ -6,7 +6,8 @@ from uuid import UUID
 from app.models.responses.book_responses import BookPublic
 from app.models.requests.book_requests import BookCreate, BookUpdate
 from app.services.book_service import BookService
-from app.services.dependencies import get_book_service
+from app.services.dependencies import get_book_service, require_auth
+from app.models.domain.user import User
 
 router = APIRouter()
 
@@ -16,7 +17,11 @@ class BookController:
     book_service: BookService = Depends(get_book_service)
 
     @router.post("/", response_model=BookPublic, status_code=201)
-    def create_book(self, book: BookCreate):
+    def create_book(
+        self,
+        book: BookCreate,
+        authenticated_user: User = Depends(require_auth),
+    ):
         try:
             created_book = self.book_service.create_book(book)
             return BookPublic.model_validate(created_book)
@@ -44,14 +49,23 @@ class BookController:
         return BookPublic.model_validate(book)
 
     @router.put("/{book_id}", response_model=BookPublic)
-    def update_book(self, book_id: UUID, book_update: BookUpdate):
+    def update_book(
+        self,
+        book_id: UUID,
+        book_update: BookUpdate,
+        authenticated_user: User = Depends(require_auth),
+    ):
         book = self.book_service.update_book(book_id, book_update)
         if not book:
             raise HTTPException(status_code=404, detail="Book not found")
         return BookPublic.model_validate(book)
 
     @router.delete("/{book_id}", status_code=204)
-    def delete_book(self, book_id: UUID):
+    def delete_book(
+        self,
+        book_id: UUID,
+        authenticated_user: User = Depends(require_auth),
+    ):
         success = self.book_service.delete_book(book_id)
         if not success:
             raise HTTPException(status_code=404, detail="Book not found")

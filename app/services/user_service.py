@@ -13,11 +13,11 @@ class UserService:
 
     def create_user(self, user_data: UserCreate) -> User:
         existing_user = self.session.exec(
-            select(User).where(User.github_id == user_data.github_id)
+            select(User).where(User.email == user_data.email)
         ).first()
 
         if existing_user:
-            raise ValueError('User with this GitHub ID already exists')
+            raise ValueError('User with this email already exists')
 
         user = User.model_validate(user_data)
         self.session.add(user)

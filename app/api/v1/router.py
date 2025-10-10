@@ -1,9 +1,15 @@
 from fastapi import APIRouter
 
 from app.core.api import APIRoutes
-from .controllers import books, reading_entries, users
+from .controllers import books, reading_entries, users, auth
 
 api_router = APIRouter()
+
+api_router.include_router(
+    auth.router,
+    prefix=APIRoutes.AUTH.prefix,
+    tags=APIRoutes.AUTH.tags
+)
 
 api_router.include_router(
     books.router,

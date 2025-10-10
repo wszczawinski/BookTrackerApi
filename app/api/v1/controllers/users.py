@@ -5,8 +5,9 @@ from uuid import UUID
 
 from app.models.responses.user_responses import UserPublic
 from app.models.requests.user_requests import UserCreate
-from app.services.dependencies import get_user_service
+from app.services.dependencies import get_user_service, require_auth
 from app.services.user_service import UserService
+from app.models.domain.user import User
 
 router = APIRouter()
 
@@ -26,6 +27,7 @@ class UserController:
     @router.get("/", response_model=List[UserPublic])
     def get_users(
         self,
+        authenticated_user: User = Depends(require_auth),
         skip: int = Query(0, ge=0),
         limit: int = Query(100, ge=1, le=1000),
         active_only: bool = Query(True),
@@ -36,7 +38,11 @@ class UserController:
         return [UserPublic.model_validate(user) for user in users]
 
     @router.get("/{user_id}", response_model=UserPublic)
-    def get_user(self, user_id: UUID):
+    def get_user(
+        self,
+        user_id: UUID,
+        authenticated_user: User = Depends(require_auth),
+    ):
         user = self.user_service.get_user_by_id(user_id)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")

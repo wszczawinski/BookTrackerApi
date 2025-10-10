@@ -4,7 +4,6 @@ from typing import Optional, Annotated
 
 
 class UserCreate(SQLModel):
-    github_id: int = Field(unique=True, index=True)
     username: Annotated[str, StringConstraints(min_length=1, max_length=39)] = Field(
         index=True
     )

@@ -42,6 +42,15 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Book Tracker API"
 
+    SUPABASE_URL: str
+    SUPABASE_ANON_KEY: str
+    SUPABASE_JWT_SECRET: str
+
+    API_JWT_SECRET: str
+    API_JWT_ALGORITHM: str
+    API_JWT_EXPIRE_HOURS: int
+    API_JWT_ISSUER: str
+    API_JWT_COOKIE_NAME: str
 
     CORS_ORIGINS: list[str]
     CORS_ALLOW_CREDENTIALS: bool
