@@ -1,8 +1,10 @@
+from datetime import datetime, timedelta
 from typing import Optional, Tuple
 from uuid import UUID
-from datetime import datetime, timedelta
-from sqlmodel import Session, select
+
 from jose import JWTError, jwt
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from app.core.config import settings
 from app.models.domain.user import User
@@ -10,33 +12,32 @@ from app.models.requests.user_requests import UserCreate
 
 
 class AuthService:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def get_current_user(self, api_token: str) -> Optional[User]:
+    async def get_current_user(self, api_token: str) -> Optional[User]:
         """Get current user from API JWT token"""
         user_id = self.verify_api_jwt(api_token)
         if not user_id:
             return None
 
-        return self.session.get(User, user_id)
+        return await self.session.get(User, user_id)
 
-    def authenticate_with_supabase(self, supabase_token: str) -> Optional[User]:
+    async def authenticate_with_supabase(self, supabase_token: str) -> Optional[User]:
         """Authenticate using Supabase JWT and return user (for login only)"""
         supabase_user = self.verify_supabase_token(supabase_token)
         if not supabase_user:
             return None
 
-        return self.create_or_update_user_from_supabase(supabase_user)
+        return await self.create_or_update_user_from_supabase(supabase_user)
 
-    def create_or_update_user_from_supabase(self, supabase_user: dict) -> User:
+    async def create_or_update_user_from_supabase(self, supabase_user: dict) -> User:
         email = supabase_user.get("email")
         if not email:
             raise ValueError("Email is required from Supabase token")
 
-        existing_user = self.session.exec(
-            select(User).where(User.email == email)
-        ).first()
+        result = await self.session.execute(select(User).where(User.email == email))
+        existing_user = result.scalars().first()
 
         user_metadata = supabase_user.get("user_metadata", {})
 
@@ -52,8 +53,8 @@ class AuthService:
             existing_user.email = email
             existing_user.avatar_url = avatar_url
             self.session.add(existing_user)
-            self.session.commit()
-            self.session.refresh(existing_user)
+            await self.session.commit()
+            await self.session.refresh(existing_user)
             return existing_user
         else:
             user_data = UserCreate(
@@ -63,8 +64,8 @@ class AuthService:
             )
             user = User.model_validate(user_data)
             self.session.add(user)
-            self.session.commit()
-            self.session.refresh(user)
+            await self.session.commit()
+            await self.session.refresh(user)
             return user
 
     def create_api_jwt(self, user_id: UUID) -> Tuple[str, datetime]:

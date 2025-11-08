@@ -1,11 +1,18 @@
-from sqlmodel import Field, SQLModel, Relationship
+from enum import Enum
+from typing import TYPE_CHECKING, Annotated, Optional
+
 from pydantic import EmailStr, StringConstraints
-from typing import Optional, Annotated, TYPE_CHECKING
+from sqlmodel import Field, Relationship, SQLModel
 
 from ..base import BaseModel
 
 if TYPE_CHECKING:
     from .reading_entry import ReadingEntry
+
+
+class RoleType(str, Enum):
+    ADMIN = "admin"
+    STANDARD_USER = "standard_user"
 
 
 class UserBase(SQLModel):
@@ -20,6 +27,7 @@ class UserBase(SQLModel):
         default=None
     )
     is_active: bool = Field(default=True)
+    role: RoleType = Field(default=RoleType.STANDARD_USER)
 
 
 class User(UserBase, BaseModel, table=True):

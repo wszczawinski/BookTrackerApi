@@ -1,45 +1,35 @@
+from typing import Optional, Sequence
 from uuid import UUID
-from typing import List, Optional
-from sqlmodel import Session, select
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from app.models.domain.user import User
-from app.models.requests.user_requests import UserCreate, UserUpdate
+from app.models.requests.user_requests import UserUpdate
 
 
 class UserService:
-
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def create_user(self, user_data: UserCreate) -> User:
-        existing_user = self.session.exec(
-            select(User).where(User.email == user_data.email)
-        ).first()
+    async def get_user_by_id(self, user_id: UUID) -> Optional[User]:
+        return await self.session.get(User, user_id)
 
-        if existing_user:
-            raise ValueError('User with this email already exists')
-
-        user = User.model_validate(user_data)
-        self.session.add(user)
-        self.session.commit()
-        self.session.refresh(user)
-        return user
-
-    def get_user_by_id(self, user_id: UUID) -> Optional[User]:
-        return self.session.get(User, user_id)
-
-    def get_all_users(
+    async def get_all_users(
         self, skip: int = 0, limit: int = 100, active_only: bool = True
-    ) -> List[User]:
+    ) -> Sequence[User]:
         statement = select(User).offset(skip).limit(limit)
 
         if active_only:
-            statement = statement.where(User.is_active == True)
+            statement = statement.where(User.is_active)
 
-        return self.session.exec(statement).all()
+        result = await self.session.execute(statement)
+        return result.scalars().all()
 
-    def update_user(self, user_id: UUID, user_update: UserUpdate) -> Optional[User]:
-        user = self.session.get(User, user_id)
+    async def update_user(
+        self, user_id: UUID, user_update: UserUpdate
+    ) -> Optional[User]:
+        user = await self.session.get(User, user_id)
         if not user:
             return None
 
@@ -48,26 +38,26 @@ class UserService:
             setattr(user, key, value)
 
         self.session.add(user)
-        self.session.commit()
-        self.session.refresh(user)
+        await self.session.commit()
+        await self.session.refresh(user)
         return user
 
-    def deactivate_user(self, user_id: UUID) -> bool:
-        user = self.session.get(User, user_id)
+    async def deactivate_user(self, user_id: UUID) -> bool:
+        user = await self.session.get(User, user_id)
         if not user:
             return False
 
         user.is_active = False
         self.session.add(user)
-        self.session.commit()
+        await self.session.commit()
         return True
 
-    def reactivate_user(self, user_id: UUID) -> bool:
-        user = self.session.get(User, user_id)
+    async def reactivate_user(self, user_id: UUID) -> bool:
+        user = await self.session.get(User, user_id)
         if not user:
             return False
 
         user.is_active = True
         self.session.add(user)
-        self.session.commit()
+        await self.session.commit()
         return True

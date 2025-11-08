@@ -1,6 +1,7 @@
-from sqlmodel import Field, SQLModel
+from typing import Annotated, Optional
+
 from pydantic import EmailStr, StringConstraints
-from typing import Optional, Annotated
+from sqlmodel import Field, SQLModel
 
 
 class UserCreate(SQLModel):

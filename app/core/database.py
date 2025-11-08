@@ -1,22 +1,30 @@
-from sqlmodel import Session, SQLModel, create_engine
+from datetime import datetime
+from typing import AsyncGenerator
+
+from sqlalchemy import event
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlmodel import SQLModel
 
 from .config import settings
 
-engine = create_engine(
+engine = create_async_engine(
     str(settings.DATABASE_URL),
     echo=settings.SQL_ECHO,
+    future=True,
 )
 
 
-def init_db():
-    SQLModel.metadata.create_all(engine)
+@event.listens_for(SQLModel, "before_update", propagate=True)
+def auto_update_timestamp(mapper, connection, target):
+    if hasattr(target, "updated_at"):
+        target.updated_at = datetime.utcnow()
 
 
-# TODO: remove and use alembic for migrations after initial development
-def drop_db_and_tables():
-    SQLModel.metadata.drop_all(engine)
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
 
 
-def get_session():
-    with Session(engine) as session:
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSession(engine, expire_on_commit=False) as session:
         yield session

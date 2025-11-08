@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> PostgresDsn:
         return PostgresDsn.build(
-            scheme="postgresql",
+            scheme="postgresql+asyncpg",
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD,
             host=self.POSTGRES_HOST,

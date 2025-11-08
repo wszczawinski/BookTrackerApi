@@ -20,7 +20,9 @@ A lightweight, self-hosted reading tracker built with FastAPI, PostgreSQL, and G
 - **Migrations**: Alembic
 - **API Server**: Uvicorn
 - **Data Validation**: Pydantic
-- **Database Driver**: psycopg2
+- **Database Driver**: asyncpg (async PostgreSQL driver)
+- **Rate Limiting**: SlowAPI
+- **Security**: Custom security headers middleware
 - **Deployment**: Docker + Docker Compose
 
 ## 📐 Domain Model
@@ -67,6 +69,8 @@ A lightweight, self-hosted reading tracker built with FastAPI, PostgreSQL, and G
 - Python 3.13+
 - Docker & Docker Compose (or Podman & Podman Compose) installed
 - Git installed
+- PostgreSQL database (local or hosted)
+- Supabase project for OAuth authentication
 
 ## 🔐 Authentication Flow
 
@@ -114,6 +118,10 @@ Frontend                    Your API                 Supabase
 - **Secure cookie flags** - `httponly=True`, `secure=production`, `samesite=lax`
 - **Token validation** - Proper JWT signature, issuer, and expiry verification
 - **Token revocation** - Change API_JWT_SECRET to invalidate all tokens instantly
+- **Rate limiting** - API rate limiting with SlowAPI to prevent abuse
+- **Security headers** - Custom middleware for security headers (CSP, HSTS, etc.)
+- **CORS protection** - Configurable CORS middleware with credential support
+- **Trusted hosts** - Host validation middleware to prevent host header attacks
 
 ### Security Model
 
@@ -134,6 +142,24 @@ Frontend                    Your API                 Supabase
 - **Independence**: Your API doesn't depend on Supabase for ongoing authentication
 - **Flexibility**: Easy to add features like token revocation, audit trails, etc.
 
+## 👥 Roles & Permissions
+
+The API uses role-based access control (RBAC):
+
+**Roles:**
+
+- `STANDARD_USER` (default) - Regular users
+- `ADMIN` - Full system access
+
+**Available dependency classes:**
+
+- `RequirePermission(Permission.X)` - Single permission required
+- `RequireAnyPermission(Permission.X, Permission.Y)` - OR logic
+- `RequireAllPermissions(Permission.X, Permission.Y)` - AND logic
+- `require_auth` - Authentication only, no permission check
+
+See `app/core/permissions.py` for full permission list.
+
 ## 🔑 Create .env
 
 - Copy .env.example and fill required variables
@@ -152,6 +178,10 @@ source .venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your database and Supabase credentials
+
 # Run development DB
 docker-compose up
 
@@ -165,22 +195,30 @@ uvicorn app.main:app --reload
 
 - [x] Setup project dependencies and virtual environment
 - [x] Configure a database with Docker Compose (PostgreSQL)
-- [x] Implement database connection and ORM models
+- [x] Implement async database connection with asyncpg driver
 - [x] Define domain model (`User`, `Book`, `ReadingEntry`)
 - [x] Build API endpoints for book and reading progress management
 - [x] Integrate Supabase OAuth authentication and create auth endpoints
-- [x] Add security headers middleware (TrustedHost, GZip)
+- [x] Add security headers middleware (TrustedHost, GZip, CORS)
 - [x] Implement dual JWT authentication strategy
 - [x] Add comprehensive input validation and business logic
+- [x] Implement role-based access control (RBAC) with permissions
+- [x] Add API rate limiting with SlowAPI
+- [x] Create custom security headers middleware
+- [x] Add async database operations with proper error handling
 
 ### 🟡 Next steps
 
 - [ ] Set up Alembic and create initial migration
 - [ ] Add comprehensive error handling and custom exceptions
 - [ ] Implement transaction management for complex operations
-- [ ] Add API rate limiting
 - [ ] Create health check endpoints
+- [ ] Add OpenLibrary API integration for book metadata
+- [ ] Implement book cover image handling
 - [ ] Create a Dockerfile for containerized deployment
+- [ ] Add comprehensive API testing suite
 - [ ] Add CI/CD pipeline configuration
 - [ ] Set up monitoring and metrics collection
 - [ ] Add backup and recovery procedures
+- [ ] Implement book recommendation system
+- [ ] Add reading statistics and analytics
