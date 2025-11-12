@@ -15,12 +15,12 @@ class AddBookRequest(BaseModel):
 
 
 class UpdateProgressRequest(BaseModel):
-    progress: Decimal
+    progress: Annotated[Decimal, Field(ge=0, le=100)]
 
 
 class UpdateReviewRequest(BaseModel):
-    rating: int
-    review: Optional[str] = None
+    rating: Annotated[int, Field(ge=1, le=5)]
+    review: Optional[Annotated[str, StringConstraints(max_length=2000)]] = None
 
 
 class ReadingEntryUpdate(SQLModel):

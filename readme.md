@@ -1,6 +1,6 @@
 # 📚 Book Tracker API
 
-A lightweight, self-hosted reading tracker built with FastAPI, PostgreSQL, and GitHub OAuth. Log books, track progress, and link to OpenLibrary — built as a hands-on project to explore Python backend development.
+A lightweight, self-hosted reading tracker built with FastAPI, PostgreSQL, and Supabase Auth. Log books, track progress, and link to OpenLibrary — built as a hands-on project to explore Python backend development.
 
 ## 🚀 Features
 
@@ -14,15 +14,17 @@ A lightweight, self-hosted reading tracker built with FastAPI, PostgreSQL, and G
 
 ## 📦 Tech Stack
 
-- **Backend**: FastAPI
+- **Backend**: FastAPI (async)
 - **Database**: PostgreSQL (via SQLModel)
 - **Auth**: Supabase OAuth with HTTP-only cookies
-- **Migrations**: Alembic
+- **Migrations**: Alembic (not yet configured)
 - **API Server**: Uvicorn
 - **Data Validation**: Pydantic
 - **Database Driver**: asyncpg (async PostgreSQL driver)
 - **Rate Limiting**: SlowAPI
 - **Security**: Custom security headers middleware
+- **Exception Handling**: Hybrid (global + explicit)
+- **Logging**: Structured logging throughout
 - **Deployment**: Docker + Docker Compose
 
 ## 📐 Domain Model
@@ -201,24 +203,21 @@ uvicorn app.main:app --reload
 - [x] Integrate Supabase OAuth authentication and create auth endpoints
 - [x] Add security headers middleware (TrustedHost, GZip, CORS)
 - [x] Implement dual JWT authentication strategy
-- [x] Add comprehensive input validation and business logic
+- [x] Add comprehensive input validation with Pydantic schemas
 - [x] Implement role-based access control (RBAC) with permissions
 - [x] Add API rate limiting with SlowAPI
 - [x] Create custom security headers middleware
 - [x] Add async database operations with proper error handling
+- [x] Implement hybrid exception handling (global + explicit)
+- [x] Add comprehensive logging throughout application
+
 
 ### 🟡 Next steps
-
-- [ ] Set up Alembic and create initial migration
-- [ ] Add comprehensive error handling and custom exceptions
-- [ ] Implement transaction management for complex operations
-- [ ] Create health check endpoints
-- [ ] Add OpenLibrary API integration for book metadata
-- [ ] Implement book cover image handling
+- [ ] Add ownership validation in services
+- [ ] Configure database connection pools
+- [ ] Improve security headers (HSTS, CSP)
 - [ ] Create a Dockerfile for containerized deployment
-- [ ] Add comprehensive API testing suite
+- [ ] Add API testing suite
 - [ ] Add CI/CD pipeline configuration
 - [ ] Set up monitoring and metrics collection
 - [ ] Add backup and recovery procedures
-- [ ] Implement book recommendation system
-- [ ] Add reading statistics and analytics

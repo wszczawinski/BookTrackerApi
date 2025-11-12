@@ -7,7 +7,14 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
+from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 
+from app.core.exception_handlers import (
+    generic_exception_handler,
+    integrity_error_handler,
+    operational_error_handler,
+    sqlalchemy_error_handler,
+)
 from app.core.logging import setup_logging
 from app.core.security_middleware import SecurityHeadersMiddleware
 
@@ -41,6 +48,14 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Database exception handlers
+app.add_exception_handler(IntegrityError, integrity_error_handler)
+app.add_exception_handler(OperationalError, operational_error_handler)
+app.add_exception_handler(SQLAlchemyError, sqlalchemy_error_handler)
+
+# Catch-all exception handler (must be last)
+app.add_exception_handler(Exception, generic_exception_handler)
 
 app.add_middleware(SecurityHeadersMiddleware)
 

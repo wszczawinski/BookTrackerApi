@@ -24,4 +24,3 @@ class UserUpdate(SQLModel):
     avatar_url: Optional[Annotated[str, StringConstraints(max_length=500)]] = Field(
         default=None
     )
-    is_active: Optional[bool] = Field(default=None)

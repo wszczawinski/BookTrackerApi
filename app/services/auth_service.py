@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
 from uuid import UUID
@@ -7,8 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from app.core.config import settings
+from app.core.exceptions import SupabaseAuthError, ValidationError
 from app.models.domain.user import User
 from app.models.requests.user_requests import UserCreate
+
+logger = logging.getLogger(__name__)
 
 
 class AuthService:
@@ -23,21 +27,24 @@ class AuthService:
 
         return await self.session.get(User, user_id)
 
-    async def authenticate_with_supabase(self, supabase_token: str) -> Optional[User]:
+    async def authenticate_with_supabase(self, supabase_token: str) -> User:
         """Authenticate using Supabase JWT and return user (for login only)"""
         supabase_user = self.verify_supabase_token(supabase_token)
         if not supabase_user:
-            return None
+            raise SupabaseAuthError()
 
         return await self.create_or_update_user_from_supabase(supabase_user)
 
     async def create_or_update_user_from_supabase(self, supabase_user: dict) -> User:
         email = supabase_user.get("email")
         if not email:
-            raise ValueError("Email is required from Supabase token")
+            raise ValidationError("Email is required from Supabase token")
 
         result = await self.session.execute(select(User).where(User.email == email))
         existing_user = result.scalars().first()
+
+        if existing_user:
+            return existing_user
 
         user_metadata = supabase_user.get("user_metadata", {})
 
@@ -48,25 +55,18 @@ class AuthService:
         )
         avatar_url = user_metadata.get("avatar_url") or user_metadata.get("picture")
 
-        if existing_user:
-            existing_user.username = username
-            existing_user.email = email
-            existing_user.avatar_url = avatar_url
-            self.session.add(existing_user)
-            await self.session.commit()
-            await self.session.refresh(existing_user)
-            return existing_user
-        else:
-            user_data = UserCreate(
-                username=username,
-                email=email,
-                avatar_url=avatar_url,
-            )
-            user = User.model_validate(user_data)
-            self.session.add(user)
-            await self.session.commit()
-            await self.session.refresh(user)
-            return user
+        user_data = UserCreate(
+            username=username,
+            email=email,
+            avatar_url=avatar_url,
+        )
+        user = User.model_validate(user_data)
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user)
+
+        logger.info(f"Created new user from Supabase: {email}")
+        return user
 
     def create_api_jwt(self, user_id: UUID) -> Tuple[str, datetime]:
         expires_at = datetime.utcnow() + timedelta(hours=settings.API_JWT_EXPIRE_HOURS)

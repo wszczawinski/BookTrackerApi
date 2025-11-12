@@ -1,25 +1,32 @@
+import logging
 from decimal import Decimal
-from typing import List, Optional
+from typing import Optional, Sequence
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
+from app.core.exceptions import NotFoundError
 from app.models.domain.book import Book
 from app.models.domain.reading_entry import ReadingEntry, ReadingStatus
 from app.models.domain.user import User
+
+logger = logging.getLogger(__name__)
 
 
 class ReadingEntryService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_entry_by_id(self, entry_id: UUID) -> Optional[ReadingEntry]:
-        return await self.session.get(ReadingEntry, entry_id)
+    async def get_entry_by_id(self, entry_id: UUID) -> ReadingEntry:
+        entry = await self.session.get(ReadingEntry, entry_id)
+        if not entry:
+            raise NotFoundError("Reading entry", str(entry_id))
+        return entry
 
     async def get_user_entries(
         self, user_id: UUID, status: Optional[ReadingStatus] = None
-    ) -> List[ReadingEntry]:
+    ) -> Sequence[ReadingEntry]:
         statement = select(ReadingEntry).where(ReadingEntry.user_id == user_id)
 
         if status:
@@ -31,11 +38,11 @@ class ReadingEntryService:
     async def add_book_to_library(self, user_id: UUID, book_id: UUID) -> ReadingEntry:
         user = await self.session.get(User, user_id)
         if not user:
-            raise ValueError("User not found")
+            raise NotFoundError("User", str(user_id))
 
         book = await self.session.get(Book, book_id)
         if not book:
-            raise ValueError("Book not found")
+            raise NotFoundError("Book", str(book_id))
 
         result = await self.session.execute(
             select(ReadingEntry).where(
@@ -46,6 +53,7 @@ class ReadingEntryService:
         existing_entry = result.scalars().first()
 
         if existing_entry:
+            logger.info(f"Book {book_id} already in library for user {user_id}")
             return existing_entry
 
         entry = ReadingEntry(
@@ -55,80 +63,88 @@ class ReadingEntryService:
         self.session.add(entry)
         await self.session.commit()
         await self.session.refresh(entry)
+
+        logger.info(f"Added book {book_id} to library for user {user_id}")
         return entry
 
-    async def start_reading(self, entry_id: UUID) -> Optional[ReadingEntry]:
+    async def start_reading(self, entry_id: UUID) -> ReadingEntry:
         entry = await self.session.get(ReadingEntry, entry_id)
         if not entry:
-            return None
+            raise NotFoundError("Reading entry", str(entry_id))
 
         entry.start_reading()
         self.session.add(entry)
         await self.session.commit()
         await self.session.refresh(entry)
+
+        logger.info(f"Started reading entry {entry_id}")
         return entry
 
     async def update_reading_progress(
         self, entry_id: UUID, progress: Decimal
-    ) -> Optional[ReadingEntry]:
+    ) -> ReadingEntry:
         entry = await self.session.get(ReadingEntry, entry_id)
         if not entry:
-            return None
+            raise NotFoundError("Reading entry", str(entry_id))
 
         entry.update_progress(progress)
         self.session.add(entry)
         await self.session.commit()
         await self.session.refresh(entry)
+
+        logger.info(f"Updated progress for entry {entry_id} to {progress}%")
         return entry
 
-    async def complete_reading(self, entry_id: UUID) -> Optional[ReadingEntry]:
+    async def complete_reading(self, entry_id: UUID) -> ReadingEntry:
         entry = await self.session.get(ReadingEntry, entry_id)
         if not entry:
-            return None
+            raise NotFoundError("Reading entry", str(entry_id))
 
         entry.mark_completed()
         self.session.add(entry)
         await self.session.commit()
         await self.session.refresh(entry)
+
+        logger.info(f"Completed reading entry {entry_id}")
         return entry
 
-    async def abandon_reading(self, entry_id: UUID) -> Optional[ReadingEntry]:
+    async def abandon_reading(self, entry_id: UUID) -> ReadingEntry:
         entry = await self.session.get(ReadingEntry, entry_id)
         if not entry:
-            return None
+            raise NotFoundError("Reading entry", str(entry_id))
 
         entry.mark_abandoned()
         self.session.add(entry)
         await self.session.commit()
         await self.session.refresh(entry)
+
+        logger.info(f"Abandoned reading entry {entry_id}")
         return entry
 
     async def update_review(
         self, entry_id: UUID, rating: int, review: Optional[str] = None
-    ) -> Optional[ReadingEntry]:
+    ) -> ReadingEntry:
         entry = await self.session.get(ReadingEntry, entry_id)
         if not entry:
-            return None
+            raise NotFoundError("Reading entry", str(entry_id))
 
-        if not (1 <= rating <= 5):
-            raise ValueError("Rating must be between 1 and 5")
         entry.rating = rating
-
-        if review is not None:
-            if len(review) > 2000:
-                raise ValueError("Review must be 2000 characters or less")
-            entry.review = review
+        entry.review = review
 
         self.session.add(entry)
         await self.session.commit()
         await self.session.refresh(entry)
+
+        logger.info(f"Updated review for entry {entry_id}")
         return entry
 
-    async def delete_entry(self, entry_id: UUID) -> bool:
+    async def delete_entry(self, entry_id: UUID) -> None:
         entry = await self.session.get(ReadingEntry, entry_id)
         if not entry:
-            return False
+            raise NotFoundError("Reading entry", str(entry_id))
 
         await self.session.delete(entry)
         await self.session.commit()
-        return True
+
+        logger.info(f"Deleted reading entry {entry_id}")
+        return None
